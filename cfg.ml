@@ -24,7 +24,9 @@ let cfgs =
         List.iteri wasm_mod.funcs
           ~f:(fun i _ ->
               let faddr = Int32.(wasm_mod.nfuncimports + (Int32.of_int_exn i)) in
+              let t = Sys.time () in
               let cfg = Cfg_builder.build wasm_mod faddr in
+              Printf.printf "CFG generation took: %fs\n" (Sys.time() -. t);
               Out_channel.with_file (Printf.sprintf "%s/%ld.dot" out_dir faddr)
                 ~f:(fun ch ->
                     Out_channel.output_string ch (Cfg.to_dot cfg))))
