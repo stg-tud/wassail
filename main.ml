@@ -5,7 +5,7 @@ let report_time (msg : string) (t0 : Time.t) (t1 : Time.t) : unit =
 
 let () =
   Wassail.Log.enable_info ();
-  Command.run ~version:"0.0"
+  Command_unix.run ~version:"0.0"
     (Command.group ~summary:"Static analysis of WebAssembly"
        [
 

@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Helpers
 
 module T = struct
@@ -58,9 +58,14 @@ let get_type (m : t) (tid : Int32.t) : Type.t list * Type.t list =
 
 (** Get the type of the function with index fidx *)
 let get_func_type (m : t) (fidx : Int32.t) : Type.t list * Type.t list =
-  match List32.nth m.funcs Int32.(fidx-m.nfuncimports) with
-  | Some v -> v.typ
-  | None -> failwith "get_func_type nth exception"
+  if Int32.(fidx >= m.nfuncimports) then
+      match List32.nth m.funcs Int32.(fidx-m.nfuncimports) with
+      | Some v -> v.typ
+      | None -> failwith "get_func_type nth exception"
+  else
+    match List32.nth m.imported_funcs fidx with
+      | Some v -> let (_,_,t)=v in t
+      | None -> failwith "get_func_type nth exception"
 
 (** Remove a function from the module *)
 let remove_func (m : t) (fidx : Int32.t) : t =
@@ -324,4 +329,10 @@ module Test = struct
           let _ : t = of_file program in
           ()
         with e -> failwith (Printf.sprintf "Cannot parse %s: %s" program (Exn.to_string e)))
+
+  let%test "get_func_type with indirect call to imported function" =
+    let m: t = of_file "../../../test/call_indirect-with_imported_element.wat" in
+    let (t1, t2) = get_func_type m 0l in
+    List.is_empty t1 && (List.length t2) = 1 && Type.equal (List.hd_exn t2) Type.I32
+
 end
